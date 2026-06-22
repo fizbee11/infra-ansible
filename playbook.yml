@@ -84,7 +84,7 @@
     - role: generate-fstab
     - role: "diademiemi.flatpak"
       tags: flatpak
-    - role: gliech.btrbk
+    - role: ansible-role-btrbk
       tags: btrbk
 # ------------------------------------------------
 - name: Acer-lappi Fedora play
