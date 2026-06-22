@@ -1,0 +1,220 @@
+---
+# ----------------------------------------------------------------------------------------
+- name: Basic tasks for all linux systems
+  hosts: linux
+  become: true
+  roles:
+    - role: taktus.fzf
+      tags: fzf
+    # - role: jahrik.yay
+      # when: ansible_facts['os_family'] == 'Archlinux'
+      #- role: timezone
+    - role: grog.package
+    - role: run-updates
+      tags: updates
+  vars_files:
+    - 'group_vars/{{ ansible_os_family }}.yml'
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+
+# ----------------------------------------------------------------------------------------
+
+- name: Dell Ubuntu lappi
+  hosts: dell-ubuntu
+  become: true
+  vars_files:
+    - 'group_vars/{{ ansible_os_family }}.yml'
+    - 'vault/all.yml'
+    # - 'vault/{{ ansible_hostname }}.yml'
+
+  roles:
+    # - role: base
+    - role: apt
+    # - role: workstation
+    - role: petermosmans.customize-gnome
+      tags: gnome
+    - role: geerlingguy.nfs
+    # - role: generate-fstab
+    - role: geerlingguy.docker
+    - role: "diademiemi.flatpak"
+      tags: flatpak
+    # - role: gikeymarcia.neovim
+    #   tags: nvim
+    - role: intel-iGPU-driver
+      tags: gpu
+
+#------------------------------------------------
+
+- name: Asus Zephyrus WSL Ubuntu play 
+  hosts: zephyrus
+  become: true
+  vars_files:
+    - "group_vars/{{ ansible_facts['os_family'] }}.yml"
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+
+  roles:
+    - role: roles-ansible.restic
+      tags: restic
+    - role: apt
+    # - role: base
+    - role: snaps
+      tags: snaps
+    - role: gikeymarcia.neovim
+      tags: neovim
+
+#------------------------------------------------
+- name: Zephyrus chachyOS play
+  hosts: cachyos
+  become: true
+  vars_files:
+    - "group_vars/{{ ansible_facts['os_family'] }}.yml"
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+
+  roles:
+    - role: roles-ansible.restic
+      tags: restic
+    # - role: base
+    # - role: snaps
+    #  tags: snaps
+    # - role: workstation
+    # - role: petermosmans.customize-gnome
+    #  tags: gnome
+    - role: generate-fstab
+    - role: "diademiemi.flatpak"
+      tags: flatpak
+    - role: gliech.btrbk
+      tags: btrbk
+# ------------------------------------------------
+- name: Acer-lappi Fedora play
+  hosts: acer-lappi-fedora
+  become: true
+  vars_files:
+    - "group_vars/{{ ansible_facts['os_family'] }}.yml"
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+
+  roles:
+    - role: roles-ansible.restic
+      tags: restic
+    - role: taktus.fzf
+    - role: jahrik.yay
+      when: ansible_facts['os_family'] == 'Archlinux'
+    - role: grog.package
+      tags: grog
+      ansible_pkg_mgr: dnf
+    # - role: base
+    - role: snaps
+      tags: snaps
+    # - role: workstation
+    - role: petermosmans.customize-gnome
+      tags: gnome
+    - role: geerlingguy.nfs
+    # - role: generate-fstab
+    - role: geerlingguy.docker
+    - role: "diademiemi.flatpak"
+      tags: flatpak
+    - role: gikeymarcia.neovim
+      tags: neovim
+#    - role: intel-iGPU-driver
+#      tags: gpu
+
+
+# ----------------------------------------------------------------------------------------
+- name: PVE play
+  hosts: pve
+  become: true
+  vars_files:
+    - 'group_vars/{{ ansible_os_family }}.yml'
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+  roles:
+    - role: geerlingguy.nfs
+    - role: ironicbadger.snapraid
+    - role: generate-fstab
+      tags: fstab
+    - role: file-sharing
+    - role: aisbergg.snapper
+    - role: geerlingguy.docker
+      tags: docker
+    - role: cron
+    #- role: btrbk
+    #  tags: btrbk
+    # - role: docker-compose
+      # tags: compose,updates
+    - role: artis3n.tailscale
+      tags: tailscale
+    # - role: backup-script
+      # tags: backup
+    # - role: gikeymarcia.neovim
+    #   tags: nvim
+
+# ----------------------------------------------------------------------------------------
+- name: Oracle VM play
+  hosts: oraclevm
+  become: true
+  vars_files:
+    - 'group_vars/{{ ansible_os_family }}.yml'
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+
+  roles:
+    - role: geerlingguy.docker
+    # - role: generate-fstab
+    - role: docker-compose
+      tags: compose,updates
+    #- role: artis3n.tailscale
+      #tags: tailscale
+    # - role: backup-script
+      # tags: backup
+
+# ----------------------------------------------------------------------------------------
+- name: Oracle public VM play
+  hosts: oraclevmpublic
+  become: true
+  vars_files:
+    - 'group_vars/{{ ansible_os_family }}.yml'
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+
+  roles:
+    - role: geerlingguy.docker
+    - role: docker-compose
+      tags: compose,updates
+    #- role: artis3n.tailscale
+
+# create ssh key and copy to pbs
+# for apparmor error in LXC, either disable apprmor or add 'lxc.apparmor.profile: unconfined'
+# in the LXC config
+
+# for zerotier/tailscale, need to allow tun/tap device permissions,
+# lxc.cgroup2.devices.allow: c 10:200 rwm
+# lxc.mount.entry: /dev/net dev/net none bind,create=dir
+# ----------------------------------------------------------------------------------------
+- name: LXC proxy/vpn play
+  hosts: proxy
+  become: true
+  vars_files:
+    - 'group_vars/{{ ansible_os_family }}.yml'
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+
+  roles:
+    - role: taktus.fzf
+    # - role: artis3n.tailscale # creating issues, need to run up commands with relevent flags and route
+    #  tags: tailscale
+
+# ----------------------------------------------------------------------------------------
+
+- name: Shikamaru proxy/vpn play
+  hosts: shikamaru
+  become: true
+  vars_files:
+    - 'group_vars/{{ ansible_os_family }}.yml'
+    - 'vault/all.yml'
+    - 'vault/{{ ansible_hostname }}.yml'
+
+  roles:
+    - role: artis3n.tailscale # creating issues, need to run up commands with relevent flags and route
+      tags: tailscale
