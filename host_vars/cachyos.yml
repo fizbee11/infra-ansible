@@ -193,12 +193,15 @@ restic_backups:
     monitoring_call: "curl -m 10 --retry 5 https://hc-ping.com/ec416d06-5d73-4a57-90a0-8d9344eb8513"
     exclude:
       exclude_caches: true
-# gliech.btrbk
-btrbk_volume: /mnt/root
-btrbk_subvolumes:
-  - @root # root's home
-  - @home
-  - @
-  - @srv
 
-
+# fizbee11.btrbk
+btrbk_volumes:
+  - path: "/mnt/root/" # volume path,
+    snapshot_dir: _btrbk_snap
+    target: "ssh://100.100.144.3/mnt/btrfsvol"
+    subvolumes:
+      - "@"
+      - "@home"
+      - "@root"
+      - "@srv"
+btrbk_oncalendar: "*-*-* 12:00:00"
